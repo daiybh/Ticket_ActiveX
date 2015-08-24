@@ -1,0 +1,67 @@
+// Ticket_ActiveX.idl : ActiveX 控件项目的类型库源。
+
+// 此文件将由 MIDL 编译器工具处理以
+// 产生类型库(Ticket_ActiveX.tlb)，该类型库将成为
+// Ticket_ActiveX.ocx.
+
+#include <olectl.h>
+#include <idispids.h>
+
+[ uuid(F02458B1-A391-4350-8D7F-FF404514E5C4), version(1.0),
+  helpfile("Ticket_ActiveX.hlp"),
+  helpstring("Ticket_ActiveX ActiveX 控件模块"),
+  control ]
+library Ticket_ActiveXLib
+{
+	importlib(STDOLE_TLB);
+
+	//  CTicket_ActiveXCtrl 的主调度接口
+
+	[ uuid(88BB85E7-F3EB-45E2-9E05-E5374170C9FD),
+	  helpstring("Ticket_ActiveX Control 的调度接口")]
+	dispinterface _DTicket_ActiveX
+	{
+		properties:
+		methods:
+
+			[id(DISPID_ABOUTBOX)] void AboutBox();
+			[id(1), helpstring("方法Sub")] LONG Sub(LONG a, LONG b);
+			[id(2), helpstring("方法PZrPj")] BSTR PZrPj2(LONG IEHandle, BSTR ZrTxt, LONG IsPrn, BSTR PjLx, BSTR Bz, BSTR StreamNo);
+			[id(3), helpstring("方法PZrPj2")] BSTR PZrPj(BSTR ZrTxt, LONG IsPrn, BSTR PjLx, BSTR Bz, BSTR StreamNo);
+			[id(4), helpstring("方法PDelPj")] BSTR PDelPj(BSTR PjStr);
+			[id(5), helpstring("方法PGetPjMc")] BSTR PGetPjMc();
+			[id(6), helpstring("方法PGetCurPj")] BSTR PGetCurPj(BSTR Pj);
+			[id(7), helpstring("方法PGetCurPh")] BSTR PGetCurPh(BSTR Pj);
+			[id(8), helpstring("方法PGetCardh")] BSTR PGetCardh();
+			[id(9), helpstring("方法PGetKpr")] BSTR PGetKpr();
+			[id(10), helpstring("方法PZrJks")] BSTR PZrJks(BSTR ZrTxt,LONG IsPrn);
+			[id(11), helpstring("方法PQueryZrPj")] BSTR PQueryZrPj(BSTR StreamNo);
+			[id(12), helpstring("方法PQueryZrJks")] BSTR PQueryZrJks(BSTR StreamNo);
+			[id(13), helpstring("方法LoginSuccess")] LONG LoginSuccess();
+			[id(14), helpstring("方法PCheckZf")] BSTR PCheckZf(BSTR PjStr);
+			[id(15), helpstring("方法PFindPh")] BSTR PFindPh(BSTR PjStr);
+	};
+
+	//  CTicket_ActiveXCtrl 的事件调度接口
+
+	[ uuid(8281FCFA-404E-4339-AFA7-7C739C4EBB45),
+	  helpstring("Ticket_ActiveX Control 的事件接口") ]
+	dispinterface _DTicket_ActiveXEvents
+	{
+		properties:
+			//  事件接口没有任何属性
+
+		methods:
+	};
+
+	//  CTicket_ActiveXCtrl 的类信息
+
+	[ uuid(BF182670-9126-4EA1-8AC4-D9A3C921F85D), licensed,
+	  helpstring("Ticket_ActiveX Control"), control ]
+	coclass Ticket_ActiveX
+	{
+		[default] dispinterface _DTicket_ActiveX;
+		[default, source] dispinterface _DTicket_ActiveXEvents;
+	};
+
+};
