@@ -4,22 +4,39 @@
 
 
 // CTicket_ActiveXCtrl : 有关实现的信息，请参阅 Ticket_ActiveXCtrl.cpp。
+#define STDCALL_FUNC __stdcall
+typedef int (STDCALL_FUNC *DLL_Connect)() ;
+//#define  Debug_no_DLL
+#ifndef Debug_no_DLL
+typedef int (STDCALL_FUNC * DLL_PZrPj)(LONG IEHandle, char * ZrTxt, LONG IsPrn,  char * PjLx, char * Bz,  char * StreamNo,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PDelPj)(char *PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetPjMc)(char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetCurPj)(char * PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetCurPh)(char * PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetCardh)(char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetKpr)(char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PZrJks)(char * ZrTxt,LONG IsPrn,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PQueryZrPj)(char * StreamNo,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PQueryZrJks)(char * StreamNo,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PLoginSuccess)() ; 
+typedef int (STDCALL_FUNC * DLL_PCheckZf)(char * PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PFindPh)(char * PjStr,  char* Res) ; 
+#else
 
-typedef int (*DLL_Connect)() ;
-//typedef int (* DLL_PZrPj)(LONG IEHandle, char*ZrTxt, LONG IsPrn,  char*PjLx, char*Bz,  char*StreamNo,  char* Res) ; 
-typedef int (* DLL_PZrPj)(LONG IEHandle, LPCTSTR ZrTxt, LONG IsPrn,  LPCTSTR PjLx, LPCTSTR Bz,  LPCTSTR StreamNo,  char* Res) ; 
-typedef int (* DLL_PDelPj)(LPCTSTR PjStr,  char* Res) ; 
-typedef int (* DLL_PGetPjMc)(char* Res) ; 
-typedef int (* DLL_PGetCurPj)(LPCTSTR PjStr,  char* Res) ; 
-typedef int (* DLL_PGetCurPh)(LPCTSTR PjStr,  char* Res) ; 
-typedef int (* DLL_PGetCardh)(char* Res) ; 
-typedef int (* DLL_PGetKpr)(char* Res) ; 
-typedef int (* DLL_PZrJks)(LPCTSTR ZrTxt,LONG IsPrn,  char* Res) ; 
-typedef int (* DLL_PQueryZrPj)(LPCTSTR StreamNo,  char* Res) ; 
-typedef int (* DLL_PQueryZrJks)(LPCTSTR StreamNo,  char* Res) ; 
-typedef int (* DLL_PLoginSuccess)() ; 
-typedef int (* DLL_PCheckZf)(LPCTSTR PjStr,  char* Res) ; 
-typedef int (* DLL_PFindPh)(LPCTSTR PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PZrPj)(LONG IEHandle, LPCTSTR ZrTxt, LONG IsPrn,  LPCTSTR PjLx, LPCTSTR Bz,  LPCTSTR StreamNo,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PDelPj)(LPCTSTR PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetPjMc)(char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetCurPj)(LPCTSTR PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetCurPh)(LPCTSTR PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetCardh)(char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PGetKpr)(char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PZrJks)(LPCTSTR ZrTxt,LONG IsPrn,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PQueryZrPj)(LPCTSTR StreamNo,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PQueryZrJks)(LPCTSTR StreamNo,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PLoginSuccess)() ; 
+typedef int (STDCALL_FUNC * DLL_PCheckZf)(LPCTSTR PjStr,  char* Res) ; 
+typedef int (STDCALL_FUNC * DLL_PFindPh)(LPCTSTR PjStr,  char* Res) ; 		
+#endif
 
 class CTicket_ActiveXCtrl : public COleControl
 {
@@ -62,6 +79,7 @@ protected:
 // 调度和事件 ID
 public:
 	enum {
+		dispidLoginSucess2 = 16L,
 		dispidPZrPj2 = 3L,
 		dispidPZrPj = 2L,
 		dispidSub = 1L
@@ -71,6 +89,7 @@ protected:
 	BOOL CheckDllStatus(CString &strResult);
 
 	BOOL m_bConnected;
+	/*
 	DLL_Connect m_pDLLConnect;
 	DLL_PZrPj m_pDLL_PZrPj;
 	DLL_PDelPj			m_pDLL_PDelPj		;
@@ -88,22 +107,25 @@ protected:
 	;
 
 	HINSTANCE m_hHinstance;
+/**/
 
+	BSTR PZrPj2(LONG IEHandle,  BSTR  ZrTxt, LONG IsPrn,  BSTR  PjLx,  BSTR  Bz,  BSTR  StreamNo);
+	BSTR PZrPj(BSTR ZrTxt, LONG IsPrn, BSTR PjLx, BSTR Bz, BSTR StreamNo);
 
-	BSTR PZrPj2(LONG IEHandle,  LPCTSTR  ZrTxt, LONG IsPrn,  LPCTSTR  PjLx,  LPCTSTR  Bz,  LPCTSTR  StreamNo);
-	BSTR PZrPj(LPCTSTR ZrTxt, LONG IsPrn, LPCTSTR PjLx, LPCTSTR Bz, LPCTSTR StreamNo);
-
-	BSTR PDelPj(LPCTSTR PjStr);
+	BSTR PDelPj(BSTR PjStr);
 	BSTR PGetPjMc();
-	BSTR PGetCurPj(LPCTSTR Pj);
-	BSTR PGetCurPh(LPCTSTR Pj);
+	BSTR PGetCurPj(BSTR Pj);
+	BSTR PGetCurPh(BSTR Pj);
 	BSTR PGetCardh();
 	BSTR PGetKpr();
-	BSTR PZrJks(LPCTSTR ZrTxt,LONG IsPrn);
-	BSTR PQueryZrPj(LPCTSTR StreamNo);
-	BSTR PQueryZrJks(LPCTSTR StreamNo);
-	LONG LoginSuccess();
-	BSTR PCheckZf(LPCTSTR PjStr);
-	BSTR PFindPh(LPCTSTR PjStr);
+	BSTR PZrJks(BSTR ZrTxt,LONG IsPrn);
+	BSTR PQueryZrPj(BSTR StreamNo);
+	BSTR PQueryZrJks(BSTR StreamNo);
+	LONG LoginSuccess(void);
+	BSTR PCheckZf(BSTR PjStr);
+	BSTR PFindPh(BSTR PjStr);
+	LONG LoginSucess2(void);
+public:
+	afx_msg void OnDestroy();
 };
 

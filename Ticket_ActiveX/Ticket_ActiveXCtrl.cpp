@@ -4,8 +4,21 @@
 #include "Ticket_ActiveX.h"
 #include "Ticket_ActiveXCtrl.h"
 #include "Ticket_ActiveXPropPage.h"
+#include <comutil.h>
 
+#pragma comment(lib, "comsuppw.lib")
 
+BSTR CovertStringToBSTR(char *p){
+	return _com_util::ConvertStringToBSTR(p);
+}
+
+char* CovertBSTRtoString(LPCTSTR p){
+	//return _com_util::ConvertBSTRToString(p);
+	return "NULL";
+}
+char* CovertBSTRtoString(BSTR p){
+	return _com_util::ConvertBSTRToString(p);
+}
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -19,6 +32,7 @@ IMPLEMENT_DYNCREATE(CTicket_ActiveXCtrl, COleControl)
 
 BEGIN_MESSAGE_MAP(CTicket_ActiveXCtrl, COleControl)
 	ON_OLEVERB(AFX_IDS_VERB_PROPERTIES, OnProperties)
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
@@ -27,6 +41,8 @@ END_MESSAGE_MAP()
 
 BEGIN_DISPATCH_MAP(CTicket_ActiveXCtrl, COleControl)
 	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "AboutBox", DISPID_ABOUTBOX, AboutBox, VT_EMPTY, VTS_NONE)
+	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "Sub	", 	dispidSub,Sub, VT_I4, 	VTS_PI1 VTS_PI1)
+	//DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "LoginSuccess", 			dispidSub,LoginSuccess, VT_I4, 	VT_I4	VT_I4)
 	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "PZrPj2", dispidPZrPj, PZrPj2, VT_I4, VTS_I4 VTS_PI1 VTS_I4 VTS_PI1 VTS_PI1 VTS_PI1 VTS_PI1)
 	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "PZrPj", dispidPZrPj2, PZrPj, VT_BSTR, VTS_BSTR VTS_I4 VTS_BSTR VTS_BSTR VTS_BSTR)
 	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "PDelPj", 		4L, PDelPj, VT_BSTR, 		VTS_BSTR)
@@ -41,6 +57,7 @@ BEGIN_DISPATCH_MAP(CTicket_ActiveXCtrl, COleControl)
 	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "LoginSuccess	", 	13L,LoginSuccess, VT_I4, 	VTS_NONE)
 	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "PCheckZf", 		14L,PCheckZf, VT_BSTR, 		VTS_BSTR)
 	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "PFindPh", 		15L,PFindPh, VT_BSTR, 		VTS_BSTR)
+	DISP_FUNCTION_ID(CTicket_ActiveXCtrl, "LoginSucess2", dispidLoginSucess2, LoginSucess2, VT_I4, VTS_NONE)
 END_DISPATCH_MAP()
 
 
@@ -159,6 +176,23 @@ BOOL CTicket_ActiveXCtrl::CTicket_ActiveXCtrlFactory::GetLicenseKey(DWORD dwRese
 }
 
 
+DLL_Connect			m_pDLLConnect=NULL;
+DLL_PZrPj			m_pDLL_PZrPj=NULL;
+DLL_PDelPj			m_pDLL_PDelPj		=NULL;
+DLL_PGetPjMc		m_pDLL_PGetPjMc	    =NULL;
+DLL_PGetCurPj		m_pDLL_PGetCurPj	=NULL;
+DLL_PGetCurPh		m_pDLL_PGetCurPh	=NULL;
+DLL_PGetCardh		m_pDLL_PGetCardh	=NULL;
+DLL_PGetKpr			m_pDLL_PGetKpr		=NULL;
+DLL_PZrJks			m_pDLL_PZrJks		=NULL;
+DLL_PQueryZrPj		m_pDLL_PQueryZrPj	=NULL;
+DLL_PQueryZrJks		m_pDLL_PQueryZrJks	=NULL;
+DLL_PLoginSuccess	m_pDLL_PLoginSuccess =NULL;
+DLL_PCheckZf		m_pDLL_PCheckZf	    =NULL;
+DLL_PFindPh			m_pDLL_PFindPh		=NULL;
+;
+
+HINSTANCE m_hHinstance=NULL;
 
 // CTicket_ActiveXCtrl::CTicket_ActiveXCtrl - 构造函数
 
@@ -166,24 +200,8 @@ CTicket_ActiveXCtrl::CTicket_ActiveXCtrl()
 {
 	InitializeIIDs(&IID_DTicket_ActiveX, &IID_DTicket_ActiveXEvents);
 	// TODO: 在此初始化控件的实例数据。
-
 	m_bConnected=FALSE;
-	m_pDLLConnect=NULL;
-	m_pDLL_PZrPj=NULL;
-	m_hHinstance = NULL;
-
-	m_pDLL_PDelPj		=NULL;
-	m_pDLL_PGetPjMc	    =NULL;
-	m_pDLL_PGetCurPj	=NULL;
-	m_pDLL_PGetCurPh	=NULL;
-	m_pDLL_PGetCardh	=NULL;
-	m_pDLL_PGetKpr		=NULL;
-	m_pDLL_PZrJks		=NULL;
-	m_pDLL_PQueryZrPj	=NULL;
-	m_pDLL_PQueryZrJks	=NULL;
-	m_pDLL_PLoginSuccess =NULL;
-	m_pDLL_PCheckZf	    =NULL;
-	m_pDLL_PFindPh		=NULL;
+	
 
 }
 
@@ -193,12 +211,14 @@ CTicket_ActiveXCtrl::CTicket_ActiveXCtrl()
 
 CTicket_ActiveXCtrl::~CTicket_ActiveXCtrl()
 {
+
 	// TODO: 在此清理控件的实例数据。
-	if(m_hHinstance)
+	/*if(m_hHinstance)
 	{
 		FreeLibrary(m_hHinstance);
 		m_hHinstance = NULL;
 	}
+	/**/
 }
 
 
@@ -267,95 +287,100 @@ BOOL CTicket_ActiveXCtrl::CheckDllStatus(CString &strResult)
 	{
 		if(m_hHinstance)
 			FreeLibrary(m_hHinstance);
-
-		m_hHinstance = LoadLibrary("InvoicePay.dll");
+		CString ss;
+		ss.Format(_T("1111 ins=%x dllConnect=%x"),m_hHinstance,m_pDLLConnect);
+		AfxMessageBox(ss);
+		m_hHinstance = LoadLibrary(_T("InvoicePay.dll"));
 		if(!m_hHinstance)
 		{
 			strResult=(_T("LoadLibrary InvoicePay.dll failed."));
 			return -1;
 		}
-		m_pDLLConnect=(DLL_Connect)GetProcAddress(m_hHinstance,"PConnect");  //get address of the function 
+
+		ss.Format(_T("2222 ins=%x dllConnect=%x"),m_hHinstance,m_pDLLConnect);
+		AfxMessageBox(ss);
+		m_pDLLConnect=(DLL_Connect)GetProcAddress(m_hHinstance,("PConnect"));  //get address of the function 
 		if(m_pDLLConnect==NULL) 
 		{ 
-			strResult=("get the address of the function[PConnect] Fail"); 
+			strResult=_T("get the address of the function[PConnect] Fail"); 
 			return -2;
 		} 
-		m_pDLL_PZrPj=(DLL_PZrPj)GetProcAddress(m_hHinstance,"PZrPj");  //get address of the function 
+		m_pDLL_PZrPj=(DLL_PZrPj)GetProcAddress(m_hHinstance,("PZrPj"));  //get address of the function 
 		if(m_pDLL_PZrPj==NULL) 
 		{ 
-			strResult=("get the address of the function[PZrPj] Fail"); 
+			strResult=_T("get the address of the function[PZrPj] Fail"); 
 			return -3;
 		} 
-		m_pDLL_PDelPj		=(DLL_PDelPj)GetProcAddress(m_hHinstance,"PDelPj");
+		m_pDLL_PDelPj		=(DLL_PDelPj)GetProcAddress(m_hHinstance,("PDelPj"));
 		if(!m_pDLL_PDelPj) 
 		{ 
-			strResult=("get the address of the function[PDelPj] Fail"); 
+			strResult=_T("get the address of the function[PDelPj] Fail"); 
 			return -4;
 		} 
-		m_pDLL_PGetPjMc	    =(DLL_PGetPjMc)GetProcAddress(m_hHinstance,"PGetPjMc");
+		m_pDLL_PGetPjMc	    =(DLL_PGetPjMc)GetProcAddress(m_hHinstance,("PGetPjMc"));
 		if(!m_pDLL_PGetPjMc) 
 		{ 
-			strResult=("get the address of the function[PGetPjMc] Fail"); 
+			strResult=_T("get the address of the function[PGetPjMc] Fail"); 
 			return -5;
 		} 
-		m_pDLL_PGetCurPj	=(DLL_PGetCurPj)GetProcAddress(m_hHinstance,"PGetCurPj");
+		m_pDLL_PGetCurPj	=(DLL_PGetCurPj)GetProcAddress(m_hHinstance,("PGetCurPj"));
 		if(!m_pDLL_PGetCurPj) 
 		{ 
-			strResult=("get the address of the function[PGetCurPj] Fail"); 
+			strResult=_T("get the address of the function[PGetCurPj] Fail"); 
 			return -6;
 		} 
-		m_pDLL_PGetCurPh	=(DLL_PGetCurPh)GetProcAddress(m_hHinstance,"PGetCurPh");
+		m_pDLL_PGetCurPh	=(DLL_PGetCurPh)GetProcAddress(m_hHinstance,("PGetCurPh"));
 		if(!m_pDLL_PGetCurPh) 
 		{ 
-			strResult=("get the address of the function[PGetCurPh] Fail"); 
+			strResult=_T("get the address of the function[PGetCurPh] Fail"); 
 			return -7;
 		} 
-		m_pDLL_PGetCardh	=(DLL_PGetCardh)GetProcAddress(m_hHinstance,"PGetCardh");
+		m_pDLL_PGetCardh	=(DLL_PGetCardh)GetProcAddress(m_hHinstance,("PGetCardh"));
 		if(!m_pDLL_PGetCardh) 
 		{ 
-			strResult=("get the address of the function[PGetCardh] Fail"); 
+			strResult=_T("get the address of the function[PGetCardh] Fail"); 
 			return -8;
 		} 
-		m_pDLL_PGetKpr		=(DLL_PGetKpr)GetProcAddress(m_hHinstance,"PGetKpr");
+		m_pDLL_PGetKpr		=(DLL_PGetKpr)GetProcAddress(m_hHinstance,("PGetKpr"));
 		if(!m_pDLL_PGetKpr) 
 		{ 
-			strResult=("get the address of the function[PGetKpr] Fail"); 
+			strResult=_T("get the address of the function[PGetKpr] Fail"); 
 			return -9;
 		} 
-		m_pDLL_PZrJks		=(DLL_PZrJks)GetProcAddress(m_hHinstance,"PZrJks");
+		m_pDLL_PZrJks		=(DLL_PZrJks)GetProcAddress(m_hHinstance,("PZrJks"));
 		if(!m_pDLL_PZrJks) 
 		{ 
-			strResult=("get the address of the function[PZrJks] Fail"); 
+			strResult=_T("get the address of the function[PZrJks] Fail"); 
 			return -10;
 		} 
-		m_pDLL_PQueryZrPj	=(DLL_PQueryZrPj)GetProcAddress(m_hHinstance,"PQueryZrPj");
+		m_pDLL_PQueryZrPj	=(DLL_PQueryZrPj)GetProcAddress(m_hHinstance,("PQueryZrPj"));
 		if(!m_pDLL_PQueryZrPj) 
 		{ 
-			strResult=("get the address of the function[PQueryZrPj] Fail"); 
+			strResult=_T("get the address of the function[PQueryZrPj] Fail"); 
 			return -11;
 		} 
-		m_pDLL_PQueryZrJks	=(DLL_PQueryZrJks)GetProcAddress(m_hHinstance,"PQueryZrJks");
+		m_pDLL_PQueryZrJks	=(DLL_PQueryZrJks)GetProcAddress(m_hHinstance,("PQueryZrJks"));
 		if(!m_pDLL_PQueryZrJks) 
 		{ 
-			strResult=("get the address of the function[PQueryZrJks] Fail"); 
+			strResult=_T("get the address of the function[PQueryZrJks] Fail"); 
 			return -12;
 		} 
-		m_pDLL_PLoginSuccess =(DLL_PLoginSuccess	)GetProcAddress(m_hHinstance,"PLoginSuccess");
+		m_pDLL_PLoginSuccess =(DLL_PLoginSuccess	)GetProcAddress(m_hHinstance,("PLoginSuccess"));
 		if(!m_pDLL_PLoginSuccess) 
 		{ 
-			strResult=("get the address of the function[PLoginSuccess] Fail"); 
+			strResult=_T("get the address of the function[PLoginSuccess] Fail"); 
 			return -13;
 		} 
-		m_pDLL_PCheckZf	    =(DLL_PCheckZf)GetProcAddress(m_hHinstance,"PCheckZf");
+		m_pDLL_PCheckZf	    =(DLL_PCheckZf)GetProcAddress(m_hHinstance,("PCheckZf"));
 		if(!m_pDLL_PCheckZf) 
 		{ 
-			strResult=("get the address of the function[PCheckZf] Fail"); 
+			strResult=_T("get the address of the function[PCheckZf] Fail"); 
 			return -14;
 		} 
-		m_pDLL_PFindPh		=(DLL_PFindPh)GetProcAddress(m_hHinstance,"PFindPh");
+		m_pDLL_PFindPh		=(DLL_PFindPh)GetProcAddress(m_hHinstance,("PFindPh"));
 		if(!m_pDLL_PFindPh) 
 		{ 
-			strResult=("get the address of the function[PFindPh] Fail"); 
+			strResult=_T("get the address of the function[PFindPh] Fail"); 
 			return -15;
 		} 
 	}
@@ -365,12 +390,12 @@ BOOL CTicket_ActiveXCtrl::CheckDllStatus(CString &strResult)
 
 	}
 	{
-		strResult = "Connected "+(!m_bConnected)?"failed.":"sucess";
+		strResult .Format( _T("Connected %s"),(!m_bConnected)?_T("failed."):_T("sucess"));
 	}
 	return m_bConnected;
 }
 
-BSTR CTicket_ActiveXCtrl::PZrPj(LPCTSTR ZrTxt, LONG IsPrn, LPCTSTR PjLx, LPCTSTR Bz, LPCTSTR StreamNo)
+BSTR CTicket_ActiveXCtrl::PZrPj(BSTR ZrTxt, LONG IsPrn, BSTR PjLx, BSTR Bz, BSTR StreamNo)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
@@ -378,23 +403,27 @@ BSTR CTicket_ActiveXCtrl::PZrPj(LPCTSTR ZrTxt, LONG IsPrn, LPCTSTR PjLx, LPCTSTR
 	return PZrPj2(1,ZrTxt,IsPrn,PjLx,Bz,StreamNo);
 }
 
-BSTR CTicket_ActiveXCtrl::PZrPj2(LONG IEHandle,  LPCTSTR  ZrTxt, LONG IsPrn,  LPCTSTR  PjLx,  LPCTSTR  Bz,  LPCTSTR  StreamNo)
+BSTR CTicket_ActiveXCtrl::PZrPj2(LONG IEHandle,  BSTR  ZrTxt, LONG IsPrn,  BSTR  PjLx,  BSTR  Bz,  BSTR  StreamNo)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	// TODO: 在此添加调度处理程序代码
-	TCHAR xRes[255];
+	
 	CString strResult;
 	int nRet =CheckDllStatus(strResult);
 	if(nRet<1){
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	nRet = m_pDLL_PZrPj(IEHandle,ZrTxt,IsPrn,PjLx,Bz,StreamNo,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	char xRes[255];
+	nRet = m_pDLL_PZrPj(IEHandle,CovertBSTRtoString(ZrTxt),IsPrn,
+		CovertBSTRtoString(PjLx),CovertBSTRtoString(Bz),CovertBSTRtoString(StreamNo),xRes);
+
+	xRes[nRet]='\0';
+
+	return CovertStringToBSTR(xRes);
 }
 
-BSTR CTicket_ActiveXCtrl::PDelPj(LPCTSTR PjStr)
+BSTR CTicket_ActiveXCtrl::PDelPj(BSTR PjStr)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());CString strResult;
 	int nRet =CheckDllStatus(strResult);
@@ -402,10 +431,10 @@ BSTR CTicket_ActiveXCtrl::PDelPj(LPCTSTR PjStr)
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];
-	nRet = m_pDLL_PDelPj(PjStr,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	char xRes[255];
+	nRet = m_pDLL_PDelPj(CovertBSTRtoString(PjStr),xRes);
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PGetPjMc()
 {
@@ -415,12 +444,26 @@ BSTR CTicket_ActiveXCtrl::PGetPjMc()
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
+	char xRes[255];	
 	nRet = m_pDLL_PGetPjMc(xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
-BSTR CTicket_ActiveXCtrl::PGetCurPj(LPCTSTR Pj)
+BSTR CTicket_ActiveXCtrl::PGetCurPj(BSTR Pj)
+{
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	CString strResult;
+	int nRet =CheckDllStatus(strResult);	
+	if(nRet<1){
+		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
+		return strResult.AllocSysString();
+	}
+	char xRes[1024];	
+	nRet = m_pDLL_PGetCurPj(CovertBSTRtoString(Pj),xRes);
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
+}
+BSTR CTicket_ActiveXCtrl::PGetCurPh(BSTR Pj)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());CString strResult;
 	int nRet =CheckDllStatus(strResult);
@@ -428,23 +471,10 @@ BSTR CTicket_ActiveXCtrl::PGetCurPj(LPCTSTR Pj)
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
-	nRet = m_pDLL_PGetCurPj(Pj,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
-}
-BSTR CTicket_ActiveXCtrl::PGetCurPh(LPCTSTR Pj)
-{
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());CString strResult;
-	int nRet =CheckDllStatus(strResult);
-	if(nRet<1){
-		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
-		return strResult.AllocSysString();
-	}
-	TCHAR xRes[255];	
-	nRet = m_pDLL_PGetCurPh(Pj,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	char xRes[255];	
+	nRet = m_pDLL_PGetCurPh(CovertBSTRtoString(Pj),xRes);
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PGetCardh()
 {
@@ -454,10 +484,10 @@ BSTR CTicket_ActiveXCtrl::PGetCardh()
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
+	char xRes[255];	
 	nRet = m_pDLL_PGetCardh(xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PGetKpr()
 {
@@ -467,12 +497,12 @@ BSTR CTicket_ActiveXCtrl::PGetKpr()
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
+	char xRes[255];	
 	nRet = m_pDLL_PGetKpr(xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
-BSTR CTicket_ActiveXCtrl::PZrJks(LPCTSTR ZrTxt,LONG IsPrn)
+BSTR CTicket_ActiveXCtrl::PZrJks(BSTR ZrTxt,LONG IsPrn)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());CString strResult;
 	int nRet =CheckDllStatus(strResult);
@@ -480,12 +510,12 @@ BSTR CTicket_ActiveXCtrl::PZrJks(LPCTSTR ZrTxt,LONG IsPrn)
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
-	nRet = m_pDLL_PZrJks(ZrTxt,IsPrn,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	char xRes[255];	
+	nRet = m_pDLL_PZrJks(CovertBSTRtoString(ZrTxt),IsPrn,xRes);
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
-BSTR CTicket_ActiveXCtrl::PQueryZrPj(LPCTSTR StreamNo)
+BSTR CTicket_ActiveXCtrl::PQueryZrPj(BSTR StreamNo)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());CString strResult;
 	int nRet =CheckDllStatus(strResult);
@@ -493,12 +523,12 @@ BSTR CTicket_ActiveXCtrl::PQueryZrPj(LPCTSTR StreamNo)
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
-	nRet = m_pDLL_PQueryZrPj(StreamNo,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	char xRes[255];	
+	nRet = m_pDLL_PQueryZrPj(CovertBSTRtoString(StreamNo),xRes);
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
-BSTR CTicket_ActiveXCtrl::PQueryZrJks(LPCTSTR StreamNo)
+BSTR CTicket_ActiveXCtrl::PQueryZrJks(BSTR StreamNo)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());CString strResult;
 	int nRet =CheckDllStatus(strResult);
@@ -506,12 +536,12 @@ BSTR CTicket_ActiveXCtrl::PQueryZrJks(LPCTSTR StreamNo)
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
-	nRet = m_pDLL_PQueryZrJks(StreamNo,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	char xRes[255];	
+	nRet = m_pDLL_PQueryZrJks(CovertBSTRtoString(StreamNo),xRes);
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
-LONG CTicket_ActiveXCtrl::LoginSuccess()
+LONG CTicket_ActiveXCtrl::LoginSuccess(void)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	CString strResult;
@@ -523,7 +553,7 @@ LONG CTicket_ActiveXCtrl::LoginSuccess()
 	nRet = m_pDLL_PLoginSuccess();
 	return nRet;
 }
-BSTR CTicket_ActiveXCtrl::PCheckZf(LPCTSTR PjStr)
+BSTR CTicket_ActiveXCtrl::PCheckZf(BSTR PjStr)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());CString strResult;
 	int nRet =CheckDllStatus(strResult);
@@ -531,12 +561,12 @@ BSTR CTicket_ActiveXCtrl::PCheckZf(LPCTSTR PjStr)
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
-	nRet = m_pDLL_PCheckZf(PjStr,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	char xRes[255];	
+	nRet = m_pDLL_PCheckZf(CovertBSTRtoString(PjStr),xRes);
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
 }
-BSTR CTicket_ActiveXCtrl::PFindPh(LPCTSTR PjStr)
+BSTR CTicket_ActiveXCtrl::PFindPh(BSTR PjStr)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());CString strResult;
 	int nRet =CheckDllStatus(strResult);
@@ -544,8 +574,17 @@ BSTR CTicket_ActiveXCtrl::PFindPh(LPCTSTR PjStr)
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	TCHAR xRes[255];	
-	nRet = m_pDLL_PFindPh(PjStr,xRes);
-	strResult.Format(_T("%s"),xRes);
-	return strResult.AllocSysString();
+	char xRes[255];	
+	nRet = m_pDLL_PFindPh(CovertBSTRtoString(PjStr),xRes);
+	xRes[nRet]='\0';
+	return CovertStringToBSTR(xRes);
+}
+LONG CTicket_ActiveXCtrl::LoginSucess2(void)
+{
+	return LoginSuccess();
+}
+
+void CTicket_ActiveXCtrl::OnDestroy()
+{
+	COleControl::OnDestroy();	
 }

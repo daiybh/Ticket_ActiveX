@@ -1,0 +1,73 @@
+<body > 
+<script>
+    /*
+    函数列表
+    BSTR PZrPj(LPCTSTR ZrTxt, LONG IsPrn, LPCTSTR PjLx, LPCTSTR Bz, LPCTSTR StreamNo);
+
+	BSTR PDelPj(LPCTSTR PjStr);
+    BSTR PGetPjMc();
+    BSTR PGetCurPj(LPCTSTR Pj);
+    BSTR PGetCurPh(LPCTSTR Pj);
+    BSTR PGetCardh();
+    BSTR PGetKpr();
+    BSTR PZrJks(LPCTSTR ZrTxt,LONG IsPrn);
+    BSTR PQueryZrPj(LPCTSTR StreamNo);
+    BSTR PQueryZrJks(LPCTSTR StreamNo);
+    LONG LoginSuccess();
+    BSTR PCheckZf(LPCTSTR PjStr);
+    BSTR PFindPh(LPCTSTR PjStr);
+    /**/
+function Click(objid) {
+obj = document.getElementById("div" + objid.id);
+if (obj)
+    {
+        obj.innerHTML = objid.PZrPj("zrtxt",1,"0001001","","1");
+	}
+else alert(objid.id+"obj==null");
+}
+function AddTr( guid)
+{
+	objid="helloworld"+guid.substring(0,3);
+
+	document.write("<tr><td>");
+	document.write("<div id=\"div"+objid+"\"></td><td>");
+
+	document.write("<object id=\""+objid+"\"");
+
+	document.write("classid=\"clsid:"+guid+"\"");
+
+	document.write("  WIDTH=\"400\" HEIGHT=\"200\" ALIGN=\"center\" HSPACE=\"0\" VSPACE=\"0\"> </object>");
+
+	document.write("</td><td><input type='button' onclick=Click("+objid+") value='"+guid+"'> </td></tr>");
+}
+function createTable()
+{
+	document.write("<table border=\"1\">");
+	//AddTr('7343B3DC-F684-49F3-BEA3-3DE81551D9F9');
+	//AddTr('D9B2D0C1-2DED-4F0B-832B-E95CD69048B3');
+	//AddTr('1B66364E-B1A3-4B1B-86E5-7CE76C98AF6E');
+	//AddTr('BB65D7A1-394F-470F-B9F9-56520BA06708');
+	AddTr('BF182670-9126-4EA1-8AC4-D9A3C921F85D');
+	document.write("</table>");
+}
+createTable();
+</script>
+<div>
+<pre>
+函数列表
+    BSTR PZrPj(LPCTSTR ZrTxt, LONG IsPrn, LPCTSTR PjLx, LPCTSTR Bz, LPCTSTR StreamNo)
+    BSTR PDelPj(LPCTSTR PjStr);
+    BSTR PGetPjMc();
+    BSTR PGetCurPj(LPCTSTR Pj);
+    BSTR PGetCurPh(LPCTSTR Pj);
+    BSTR PGetCardh();
+    BSTR PGetKpr();
+    BSTR PZrJks(LPCTSTR ZrTxt,LONG IsPrn);
+    BSTR PQueryZrPj(LPCTSTR StreamNo);
+    BSTR PQueryZrJks(LPCTSTR StreamNo);
+    LONG LoginSuccess();
+    BSTR PCheckZf(LPCTSTR PjStr);
+    BSTR PFindPh(LPCTSTR PjStr);
+    </pre>
+    </div>
+</body>

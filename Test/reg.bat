@@ -1,0 +1,1 @@
+regsvr32 Ticket_ActiveX.ocx

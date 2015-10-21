@@ -37,9 +37,10 @@ library Ticket_ActiveXLib
 			[id(10), helpstring("方法PZrJks")] BSTR PZrJks(BSTR ZrTxt,LONG IsPrn);
 			[id(11), helpstring("方法PQueryZrPj")] BSTR PQueryZrPj(BSTR StreamNo);
 			[id(12), helpstring("方法PQueryZrJks")] BSTR PQueryZrJks(BSTR StreamNo);
-			[id(13), helpstring("方法LoginSuccess")] LONG LoginSuccess();
+			[id(13), helpstring("方法LoginSuccess")] LONG LoginSuccess(void);
 			[id(14), helpstring("方法PCheckZf")] BSTR PCheckZf(BSTR PjStr);
 			[id(15), helpstring("方法PFindPh")] BSTR PFindPh(BSTR PjStr);
+			[id(16), helpstring("method LoginSucess2")] LONG LoginSucess2(void);
 	};
 
 	//  CTicket_ActiveXCtrl 的事件调度接口
