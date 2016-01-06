@@ -287,18 +287,13 @@ BOOL CTicket_ActiveXCtrl::CheckDllStatus(CString &strResult)
 	{
 		if(m_hHinstance)
 			FreeLibrary(m_hHinstance);
-		CString ss;
-		ss.Format(_T("1111 ins=%x dllConnect=%x"),m_hHinstance,m_pDLLConnect);
-		AfxMessageBox(ss);
+
 		m_hHinstance = LoadLibrary(_T("InvoicePay.dll"));
 		if(!m_hHinstance)
 		{
 			strResult=(_T("LoadLibrary InvoicePay.dll failed."));
 			return -1;
-		}
-
-		ss.Format(_T("2222 ins=%x dllConnect=%x"),m_hHinstance,m_pDLLConnect);
-		AfxMessageBox(ss);
+		}		
 		m_pDLLConnect=(DLL_Connect)GetProcAddress(m_hHinstance,("PConnect"));  //get address of the function 
 		if(m_pDLLConnect==NULL) 
 		{ 
@@ -415,10 +410,18 @@ BSTR CTicket_ActiveXCtrl::PZrPj2(LONG IEHandle,  BSTR  ZrTxt, LONG IsPrn,  BSTR 
 		return strResult.AllocSysString();
 	}
 	char xRes[255];
-	nRet = m_pDLL_PZrPj(IEHandle,CovertBSTRtoString(ZrTxt),IsPrn,
-		CovertBSTRtoString(PjLx),CovertBSTRtoString(Bz),CovertBSTRtoString(StreamNo),xRes);
-
+	char *pZrTxt = CovertBSTRtoString(ZrTxt);
+	char *pPjLx =CovertBSTRtoString(PjLx);
+	char *pBz =CovertBSTRtoString(Bz);
+	char *pStreamNo = CovertBSTRtoString(StreamNo);
+	nRet = m_pDLL_PZrPj(IEHandle,pZrTxt,IsPrn,
+		pPjLx,pBz,pStreamNo,xRes);
 	xRes[nRet]='\0';
+
+	delete []pZrTxt;
+	delete [] pPjLx;
+	delete []pBz;
+	delete []pStreamNo;
 
 	return CovertStringToBSTR(xRes);
 }
@@ -432,8 +435,10 @@ BSTR CTicket_ActiveXCtrl::PDelPj(BSTR PjStr)
 		return strResult.AllocSysString();
 	}
 	char xRes[255];
-	nRet = m_pDLL_PDelPj(CovertBSTRtoString(PjStr),xRes);
+	char*pPjstr = CovertBSTRtoString(PjStr);
+	nRet = m_pDLL_PDelPj(pPjstr,xRes);
 	xRes[nRet]='\0';
+	delete[] pPjstr;
 	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PGetPjMc()
@@ -459,8 +464,10 @@ BSTR CTicket_ActiveXCtrl::PGetCurPj(BSTR Pj)
 		return strResult.AllocSysString();
 	}
 	char xRes[1024];	
-	nRet = m_pDLL_PGetCurPj(CovertBSTRtoString(Pj),xRes);
+	char*pPj = CovertBSTRtoString(Pj);
+	nRet = m_pDLL_PGetCurPj(pPj,xRes);
 	xRes[nRet]='\0';
+	delete [] pPj;
 	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PGetCurPh(BSTR Pj)
@@ -472,8 +479,10 @@ BSTR CTicket_ActiveXCtrl::PGetCurPh(BSTR Pj)
 		return strResult.AllocSysString();
 	}
 	char xRes[255];	
-	nRet = m_pDLL_PGetCurPh(CovertBSTRtoString(Pj),xRes);
+	char *pPj = CovertBSTRtoString(Pj);
+	nRet = m_pDLL_PGetCurPh(pPj,xRes);
 	xRes[nRet]='\0';
+	delete [] pPj;
 	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PGetCardh()
@@ -511,8 +520,12 @@ BSTR CTicket_ActiveXCtrl::PZrJks(BSTR ZrTxt,LONG IsPrn)
 		return strResult.AllocSysString();
 	}
 	char xRes[255];	
-	nRet = m_pDLL_PZrJks(CovertBSTRtoString(ZrTxt),IsPrn,xRes);
+	char * pZrTxt = CovertBSTRtoString(ZrTxt);
+	nRet = m_pDLL_PZrJks(pZrTxt,IsPrn,xRes);
 	xRes[nRet]='\0';
+
+	delete [] pZrTxt;
+
 	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PQueryZrPj(BSTR StreamNo)
@@ -524,8 +537,10 @@ BSTR CTicket_ActiveXCtrl::PQueryZrPj(BSTR StreamNo)
 		return strResult.AllocSysString();
 	}
 	char xRes[255];	
-	nRet = m_pDLL_PQueryZrPj(CovertBSTRtoString(StreamNo),xRes);
+	char * pStreamNo = CovertBSTRtoString(StreamNo);
+	nRet = m_pDLL_PQueryZrPj(pStreamNo,xRes);
 	xRes[nRet]='\0';
+	delete [] pStreamNo;
 	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PQueryZrJks(BSTR StreamNo)
@@ -537,8 +552,10 @@ BSTR CTicket_ActiveXCtrl::PQueryZrJks(BSTR StreamNo)
 		return strResult.AllocSysString();
 	}
 	char xRes[255];	
-	nRet = m_pDLL_PQueryZrJks(CovertBSTRtoString(StreamNo),xRes);
+	char * pStreamNo = CovertBSTRtoString(StreamNo);
+	nRet = m_pDLL_PQueryZrJks(pStreamNo,xRes);
 	xRes[nRet]='\0';
+	delete [] pStreamNo;
 	return CovertStringToBSTR(xRes);
 }
 LONG CTicket_ActiveXCtrl::LoginSuccess(void)
@@ -562,8 +579,10 @@ BSTR CTicket_ActiveXCtrl::PCheckZf(BSTR PjStr)
 		return strResult.AllocSysString();
 	}
 	char xRes[255];	
-	nRet = m_pDLL_PCheckZf(CovertBSTRtoString(PjStr),xRes);
+	char *pPjstr=CovertBSTRtoString(PjStr);
+	nRet = m_pDLL_PCheckZf(pPjstr,xRes);
 	xRes[nRet]='\0';
+	delete []pPjstr;
 	return CovertStringToBSTR(xRes);
 }
 BSTR CTicket_ActiveXCtrl::PFindPh(BSTR PjStr)
@@ -575,8 +594,10 @@ BSTR CTicket_ActiveXCtrl::PFindPh(BSTR PjStr)
 		return strResult.AllocSysString();
 	}
 	char xRes[255];	
-	nRet = m_pDLL_PFindPh(CovertBSTRtoString(PjStr),xRes);
+	char *pPjstr=CovertBSTRtoString(PjStr);
+	nRet = m_pDLL_PFindPh(pPjstr,xRes);
 	xRes[nRet]='\0';
+	delete []pPjstr;
 	return CovertStringToBSTR(xRes);
 }
 LONG CTicket_ActiveXCtrl::LoginSucess2(void)
