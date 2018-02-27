@@ -397,7 +397,7 @@ BSTR CTicket_ActiveXCtrl::PZrPj(BSTR ZrTxt, LONG IsPrn, BSTR PjLx, BSTR Bz, BSTR
 
 	return PZrPj2(1,ZrTxt,IsPrn,PjLx,Bz,StreamNo);
 }
-
+#define checkRet(nRetA,retLen){if(nRetA>retLen){CString strResult;strResult.Format(_T("%s ret[%d]<ret_len(%d)", __FUNCTION__, nRetA, retLen));return strResult.AllocSysString(); }}
 BSTR CTicket_ActiveXCtrl::PZrPj2(LONG IEHandle,  BSTR  ZrTxt, LONG IsPrn,  BSTR  PjLx,  BSTR  Bz,  BSTR  StreamNo)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
@@ -409,20 +409,21 @@ BSTR CTicket_ActiveXCtrl::PZrPj2(LONG IEHandle,  BSTR  ZrTxt, LONG IsPrn,  BSTR 
 		//strResult.Format(_T("CheckDllStatus() failed.[%d]"),nRet);;
 		return strResult.AllocSysString();
 	}
-	char xRes[255];
+	#define  ret_len  1024*10
+	static char xRes[ret_len];
 	char *pZrTxt = CovertBSTRtoString(ZrTxt);
 	char *pPjLx =CovertBSTRtoString(PjLx);
 	char *pBz =CovertBSTRtoString(Bz);
 	char *pStreamNo = CovertBSTRtoString(StreamNo);
 	nRet = m_pDLL_PZrPj(IEHandle,pZrTxt,IsPrn,
 		pPjLx,pBz,pStreamNo,xRes);
-	xRes[nRet]='\0';
-
+	
 	delete []pZrTxt;
 	delete [] pPjLx;
 	delete []pBz;
 	delete []pStreamNo;
-
+	checkRet(nRet, ret_len);
+	xRes[nRet] = '\0';
 	return CovertStringToBSTR(xRes);
 }
 
